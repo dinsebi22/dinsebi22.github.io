@@ -29,20 +29,6 @@ let camera = new THREE.PerspectiveCamera(
   50000
 );
 
-// Audio
-audio = new Audio();
-audioContext = new AudioContext();
-audio.src = "./Jo Wandrini - Sciophobia my-free-mp3s.com .mp3";
-audio.controls = false;
-audio.crossOrigin = "anonymous";
-analyser = audioContext.createAnalyser();
-source = audioContext.createMediaElementSource(audio);
-source.connect(analyser);
-analyser.connect(audioContext.destination);
-analyser.fftSize = 32;
-
-frequency_array = new Uint8Array(analyser.frequencyBinCount);
-
 // Controlls
 var controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -58,6 +44,23 @@ function setFog(color, near, far) {
 
 function postProcessing() {
   //    Note for bloom https://jsfiddle.net/yp2t6op6/3/
+
+  // Audio
+  audio = new Audio();
+
+  audio.src =
+    "https://ia801609.us.archive.org/2/items/001.WolfgangAmadeusMozartRequiemK.626Lacrimosa/001.%20Wolfgang%20Amadeus%20Mozart%20-%20Requiem%20%28K.%20626%29%20-%20Lacrimosa.ogg";
+  audio.controls = false;
+  audio.crossOrigin = "anonymous";
+  analyser = audioContext.createAnalyser();
+  source = audioContext.createMediaElementSource(audio);
+  source.connect(analyser);
+  analyser.connect(audioContext.destination);
+  analyser.fftSize = 32;
+
+  frequency_array = new Uint8Array(analyser.frequencyBinCount);
+  audio.play();
+
   var bloomStrength = 2.1;
   var bloomRadius = 0;
   var bloomThreshold = 0.1;
@@ -98,12 +101,19 @@ function postProcessing() {
   composer.addPass(effectFXAA);
   composer.addPass(bloomPass);
   composer.addPass(copyShader);
+
+  window.onresize = onResize;
+
+  onResize();
+
+  requestAnimationFrame(animate);
 }
 
 function startStuff() {
   console.log("Playing");
-  audio.play();
+  audioContext = new AudioContext();
   document.getElementById("playB").style.display = "none";
+  postProcessing();
 }
 
 function fractionate(value, minValue, maxValue) {
@@ -190,8 +200,3 @@ function animate(time) {
 
 document.getElementById("playB").onclick = startStuff;
 setFog("green", 0, 2000);
-window.onresize = onResize;
-postProcessing();
-
-onResize();
-requestAnimationFrame(animate);
