@@ -13,7 +13,9 @@ import { FXAAShader } from "https://threejs.org/examples/jsm/shaders/FXAAShader.
 import { UnrealBloomPass } from "https://threejs.org/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { EffectComposer } from "https://threejs.org/examples/jsm/postprocessing/EffectComposer.js";
 
-var noise = new SimplexNoise();
+// var noise = new SimplexNoise();
+
+const n = noise;
 
 let geometry, mesh, renderScene, composer;
 let audioContext, audio, source, analyser, frequency_array;
@@ -61,7 +63,7 @@ function postProcessing() {
   frequency_array = new Uint8Array(analyser.frequencyBinCount);
   audio.play();
 
-  var bloomStrength = 2.1;
+  var bloomStrength = 1.4;
   var bloomRadius = 0;
   var bloomThreshold = 0.1;
 
@@ -112,7 +114,7 @@ function postProcessing() {
 function startStuff() {
   console.log("Playing");
   audioContext = new AudioContext();
-  document.getElementById("playB").style.display = "none";
+  document.getElementById("button-wrapper").style.display = "none";
   postProcessing();
 }
 
@@ -148,19 +150,45 @@ function onResize(e) {
 }
 
 function makeRoughBall(mesh, bassFr, treFr, time) {
+  mesh.rotation.x = time * 10;
+  mesh.rotation.z = time * 10;
+  mesh.rotation.y = time * 10;
+
   mesh.geometry.vertices.forEach(function (vertex, i) {
     var offset = mesh.geometry.parameters.radius;
-    var aplitude = 2;
+    var aplitude = 1.2;
+
+    // vertex.normalize();
+    // var distance =
+    //   offset +
+    //   bassFr +
+    //   noise.noise3D(
+    //     vertex.x + time * 17,
+    //     vertex.y + time * 18,
+    //     vertex.z + time * 19
+    //   ) *
+    //     aplitude *
+    //     treFr;
 
     vertex.normalize();
     var distance =
       offset +
       bassFr +
-      noise.noise3D(
-        vertex.x + time * 17,
-        vertex.y + time * 18,
-        vertex.z + time * 19
-      ) *
+      (n.simplex3(
+        vertex.x * 2 + time * 20,
+        vertex.x * 2 + time * 20,
+        vertex.x * 2 + time * 20
+      ) +
+        n.simplex3(
+          vertex.y * 2 + time * 20,
+          vertex.y * 2 + time * 20,
+          vertex.y * 2 + time * 20
+        ) +
+        n.simplex3(
+          vertex.z * 2 + time * 20,
+          vertex.z * 2 + time * 20,
+          vertex.z * 2 + time * 20
+        )) *
         aplitude *
         treFr;
     vertex.multiplyScalar(distance);
@@ -188,7 +216,7 @@ function animate(time) {
 
   makeRoughBall(
     mesh,
-    modulate(Math.pow(lowerMaxFr, 0.8), 0, 1, 0, 8),
+    modulate(Math.pow(lowerMaxFr, 0.7), 0, 1, 0, 8),
     modulate(upperAvgFr, 0, 1, 0, 4),
     time
   );
