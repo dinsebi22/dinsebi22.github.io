@@ -1,21 +1,22 @@
-import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
+import * as THREE from 'https://unpkg.com/three@0.123.0/build/three.module.js';
+import { OrbitControls } from "https://unpkg.com/three@0.123.0/examples/jsm/controls/OrbitControls.js";
+
 import "https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.3.0/simplex-noise.min.js"; // Noise
 
-import { RenderPass } from "https://threejs.org/examples/jsm/postprocessing/RenderPass.js";
+import { RenderPass } from "https://unpkg.com/three@0.123.0/examples/jsm/postprocessing/RenderPass.js";
 
-import { MaskPass } from "https://threejs.org/examples/jsm/postprocessing/MaskPass.js";
-import { CopyShader } from "https://threejs.org/examples/jsm/shaders/CopyShader.js";
-import { ConvolutionShader } from "https://threejs.org/examples/jsm/shaders/ConvolutionShader.js";
-import { LuminosityHighPassShader } from "https://threejs.org/examples/jsm/shaders/LuminosityHighPassShader.js";
+import { CopyShader } from "https://unpkg.com/three@0.123.0/examples/jsm/shaders/CopyShader.js";
 
-import { ShaderPass } from "https://threejs.org/examples/jsm/postprocessing/ShaderPass.js";
-import { FXAAShader } from "https://threejs.org/examples/jsm/shaders/FXAAShader.js";
-import { UnrealBloomPass } from "https://threejs.org/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { EffectComposer } from "https://threejs.org/examples/jsm/postprocessing/EffectComposer.js";
+import { ShaderPass } from "https://unpkg.com/three@0.123.0/examples/jsm/postprocessing/ShaderPass.js";
+import { FXAAShader } from "https://unpkg.com/three@0.123.0/examples/jsm/shaders/FXAAShader.js";
+import { UnrealBloomPass } from "https://unpkg.com/three@0.123.0/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { EffectComposer } from "https://unpkg.com/three@0.123.0/examples/jsm/postprocessing/EffectComposer.js";
+
 
 // var noise = new SimplexNoise();
 
 const n = noise;
+
 
 let geometry, mesh, renderScene, composer;
 let audioContext, audio, source, analyser, frequency_array;
@@ -67,7 +68,7 @@ function postProcessing() {
   var bloomRadius = 0;
   var bloomThreshold = 0.1;
 
-  geometry = new THREE.IcosahedronGeometry(50, 4);
+  geometry = new THREE.IcosahedronGeometry(100, 30);
   var material = new THREE.MeshBasicMaterial({
     color: "purple",
     linewidth: 0,
@@ -150,54 +151,75 @@ function onResize(e) {
 }
 
 function makeRoughBall(mesh, bassFr, treFr, time) {
-  mesh.rotation.x = time * 10;
-  mesh.rotation.z = time * 10;
-  mesh.rotation.y = time * 10;
+   
+   mesh.rotation.x = time*10;
+   mesh.rotation.z = time*10;
+   mesh.rotation.y = time*10;
+   
+   let vertices = mesh.geometry.vertices;
+   
+    if(vertices != null && vertices.length != undefined && vertices.length > 0){
+     for(let i = 0 ; i < vertices.length ; i++){
+        vertices[i] = doCalculations(vertices[i] , i , bassFr , treFr, time)  
+      }
+    }
+   
+//   mesh.geometry.vertices.forEach(function (vertex, i) {
+//     var offset = mesh.geometry.parameters.radius;
+//     var aplitude = 1.2;
 
-  mesh.geometry.vertices.forEach(function (vertex, i) {
-    var offset = mesh.geometry.parameters.radius;
-    var aplitude = 1.2;
-
-    // vertex.normalize();
-    // var distance =
-    //   offset +
-    //   bassFr +
-    //   noise.noise3D(
-    //     vertex.x + time * 17,
-    //     vertex.y + time * 18,
-    //     vertex.z + time * 19
-    //   ) *
-    //     aplitude *
-    //     treFr;
-
-    vertex.normalize();
-    var distance =
-      offset +
-      bassFr +
-      (n.simplex3(
-        vertex.x * 2 + time * 20,
-        vertex.x * 2 + time * 20,
-        vertex.x * 2 + time * 20
-      ) +
-        n.simplex3(
-          vertex.y * 2 + time * 20,
-          vertex.y * 2 + time * 20,
-          vertex.y * 2 + time * 20
-        ) +
-        n.simplex3(
-          vertex.z * 2 + time * 20,
-          vertex.z * 2 + time * 20,
-          vertex.z * 2 + time * 20
-        )) *
-        aplitude *
-        treFr;
-    vertex.multiplyScalar(distance);
-  });
+//     // vertex.normalize();
+//     // var distance =
+//     //   offset +
+//     //   bassFr +
+//     //   noise.noise3D(
+//     //     vertex.x + time * 17,
+//     //     vertex.y + time * 18,
+//     //     vertex.z + time * 19
+//     //   ) *
+//     //     aplitude *
+//     //     treFr;
+      
+//      vertex.normalize();
+//      var distance =
+//       offset +
+//       bassFr +
+//       (
+//          n.simplex3(vertex.x*2  + time*20, vertex.x*2 + time*20, vertex.x*2 + time*20)+
+//          n.simplex3(vertex.y*2  + time*20, vertex.y*2 + time*20, vertex.y*2 + time*20)+
+//          n.simplex3(vertex.z*2  + time*20, vertex.z*2 + time*20, vertex.z*2 + time*20)
+//       ) *
+//         aplitude *
+//         treFr;
+//     vertex.multiplyScalar(distance);
+//   });
   mesh.geometry.verticesNeedUpdate = true;
   mesh.geometry.normalsNeedUpdate = true;
   mesh.geometry.computeVertexNormals();
   mesh.geometry.computeFaceNormals();
 }
+   
+   function doCalculations(vertex , i, bassFr , treFr, time){
+      {
+         var offset = mesh.geometry.parameters.radius;
+    var aplitude = 1.2;
+
+      
+     vertex.normalize();
+     var distance =
+      offset +
+      bassFr +
+      (
+         n.simplex3(vertex.x*2  + time*20, vertex.x*2 + time*20, vertex.x*2 + time*20)+
+         n.simplex3(vertex.y*2  + time*20, vertex.y*2 + time*20, vertex.y*2 + time*20)+
+         n.simplex3(vertex.z*2  + time*20, vertex.z*2 + time*20, vertex.z*2 + time*20)
+      ) *
+        aplitude *
+        treFr;
+    vertex.multiplyScalar(distance);
+      }
+      return vertex;
+   }
 
 function animate(time) {
   time *= 0.0001;
